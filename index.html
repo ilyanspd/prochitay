@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>переверни</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f5ef;
+      --ink: #24231f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #fff;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .stage {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 100svh;
+      perspective: 1000px;
+      padding: 24px;
+    }
+
+    .note {
+      position: relative;
+      width: min(76vw, 310px);
+      aspect-ratio: 1.48;
+      padding: 0;
+      border: 0;
+      border-radius: 2px;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      filter: drop-shadow(0 12px 16px rgb(0 0 0 / 9%));
+    }
+
+    .note:focus-visible {
+      outline: 2px solid #777;
+      outline-offset: 12px;
+    }
+
+    .sheet {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transform: rotateY(0deg);
+    }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: var(--paper);
+      color: var(--ink);
+      border: 1px solid #e9e5dc;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      font-size: clamp(24px, 7vw, 32px);
+      letter-spacing: -0.055em;
+      user-select: none;
+    }
+
+    .back { transform: rotateY(180deg); }
+
+    /* Цельный лист вращается вокруг вертикальной оси — без центрального сгиба. */
+    .note.is-back .sheet { transform: rotateY(-180deg); }
+
+    .note.is-folding .sheet {
+      animation: flip-left 720ms cubic-bezier(.22, .72, .25, 1) both;
+    }
+
+    .note.is-folding.is-back .sheet {
+      animation-name: flip-right;
+    }
+
+    @keyframes flip-left {
+      from { transform: rotateY(0deg); }
+      to   { transform: rotateY(-180deg); }
+    }
+
+    @keyframes flip-right {
+      from { transform: rotateY(-180deg); }
+      to   { transform: rotateY(0deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .note.is-folding .sheet { animation-duration: 1ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <button class="note" id="note" type="button" aria-label="Перевернуть записку">
+      <span class="sheet">
+        <span class="face front">переверни</span>
+        <span class="face back">переверни</span>
+      </span>
+    </button>
+  </main>
+
+  <script>
+    const note = document.querySelector('#note');
+    let showingBack = false;
+    let isAnimating = false;
+
+    note.addEventListener('click', () => {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      note.classList.toggle('is-back', showingBack);
+      note.classList.remove('is-folding');
+      // Перезапускаем CSS-анимацию при каждом нажатии.
+      void note.offsetWidth;
+      note.classList.add('is-folding');
+    });
+
+    note.addEventListener('animationend', () => {
+      showingBack = !showingBack;
+      note.classList.remove('is-folding');
+      isAnimating = false;
+    });
+  </script>
+</body>
+</html>
